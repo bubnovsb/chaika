@@ -101,7 +101,7 @@ function show(html){
   // swap in the decrypted page, then re-create its scripts so they run once
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const inkStyle = doc.createElement('style');
-  inkStyle.textContent = '.idle{background-color:#F5F1E8!important;background-image:linear-gradient(rgba(249,247,239,.14),rgba(249,247,239,.14)),url("img/whatman-paper.jpg")!important;background-position:center!important;background-size:cover!important}.idle::before{opacity:.025!important}.idle canvas{filter:contrast(1.08) saturate(.82)}';
+  inkStyle.textContent = '.idle{background-color:#F5F1E8!important;background-image:linear-gradient(rgba(249,247,239,.14),rgba(249,247,239,.14)),url("img/whatman-paper.jpg")!important;background-position:center!important;background-size:cover!important}.idle::before{opacity:.025!important}';
   doc.head.appendChild(inkStyle);
   const root = document.importNode(doc.documentElement, true);
   document.replaceChild(root, document.documentElement);
