@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Проверка памятки · Чайка</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400;500&family=Onest:wght@300;400;500;600&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F9F8F4;--ink:#16181B;--ink-2:#4A4F56;--mist:#8B9199;--line:#DCDDD7;--seal:#B22E28;--porcelain:#2A5597;--display:"Cormorant",Georgia,serif;--body:"Onest",sans-serif;--brush:"Zhi Mang Xing",serif;--gutter:clamp(18px,5vw,72px)}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 var(--body)}a{color:inherit}p{margin:0}h2,h3{font-family:var(--display);font-weight:300;margin:0}h2{font-size:clamp(44px,6.4vw,88px);line-height:.98}h3{font-size:26px;line-height:1.1}.wrap{max-width:1280px;margin:auto;padding-inline:var(--gutter)}section{padding-block:clamp(64px,10vw,140px)}.eyebrow{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--mist)}.lead{font-size:19px;color:var(--ink-2);max-width:58ch;line-height:1.7}.chapter-head{display:grid;grid-template-columns:auto 1fr;gap:clamp(16px,4vw,56px);margin-bottom:clamp(40px,6vw,80px)}.chapter-head .t{display:grid;gap:18px}.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px 40px}.app{border-top:1px solid var(--ink);padding-top:22px;display:grid;gap:12px}.ico{width:44px;height:44px;border-radius:11px;color:white;display:grid;place-items:center}.app small{font-size:12.5px}.guide{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:0 clamp(24px,4vw,56px)}.guide li{border-top:1px solid var(--line);padding:18px 0;display:grid;gap:6px}.guide b{font:400 23px/1.2 var(--display)}.guide p,.app p{font-size:17px;line-height:1.62;color:var(--ink-2)}.subnav{padding:18px var(--gutter);display:flex;gap:24px;overflow:auto;border-bottom:1px solid var(--line);white-space:nowrap}#test-status{padding:18px var(--gutter);border-bottom:1px solid var(--line)}.han{font-family:var(--brush);font-size:90px;line-height:1}
+</style>
+<div id="test-status" role="status">Проверяю…</div>
+<main id="preview"></main>
+<!-- Public section structure only; no itinerary, participant data or access code. -->
+<template id="prep-fixture">
+  <nav class="subnav page-sub"><a href="#apps">Приложения</a><a href="#rules">Правила</a><a href="#money">Деньги</a><a href="#taxi">Такси</a></nav>
+  <section id="apps"><div class="wrap"><div class="chapter-head"><div class="han">准备</div><div class="t"><p class="eyebrow">Поставить дома</p><h2>Пять приложений</h2><p class="lead">Установить заранее.</p></div></div><div class="apps"><div class="app"><h3>Alipay</h3><p>Старое описание.</p></div></div></div></section>
+  <section id="rules"><div class="wrap"><h3>Несколько простых правил</h3><p data-preserve>Правила поездки остаются без изменений.</p></div></section>
+  <section id="money"><div class="wrap"><div class="chapter-head"><div class="han">钱</div><div class="t"><p class="eyebrow">Деньги</p><h2>Как платить</h2><p class="lead">Старое описание.</p></div></div><ul class="guide"><li><b>Alipay с иностранной картой</b><p>UnionPay почти не привязывается.</p></li><li><b>Наличные юани</b><p data-preserve>Наличные остаются резервом.</p></li><li><b>Возврат налога</b><p data-preserve>Исходная информация сохранена.</p></li></ul></div></section>
+  <section id="taxi"><div class="wrap"><div class="chapter-head"><div class="han">出租</div><div class="t"><p class="eyebrow">Такси и дорога</p><h2>Как доехать</h2><p class="lead">Старое описание.</p></div></div><ul class="guide"><li><b>Такси через приложение</b><p>Старое описание.</p></li><li><b>Метро</b><p>Старое описание.</p></li><li><b>Карты</b><p>Старое описание.</p></li><li><b>Адрес отеля для водителя</b><p data-preserve>Исходный адрес отеля.</p></li></ul></div></section>
+</template>
+<script src="../travel-notes.js"></script>
+<script>
+(() => {
+  const checks = [];
+  const check = (name, ok) => { checks.push({name, ok:!!ok}); if (!ok) throw new Error(name); };
+  const parse = html => new DOMParser().parseFromString(html, 'text/html');
+  const page = parse(document.querySelector('#prep-fixture').innerHTML);
+  const preserved = Array.from(page.querySelectorAll('[data-preserve]'), p => p.textContent);
+  try {
+    SEAGULL_TRAVEL_NOTES(page, 'prep');
+    check('Новые разделы созданы', page.querySelector('#navigation') && page.querySelector('#powerbanks') && page.querySelector('#nihao'));
+    check('Старые сведения сохранены', JSON.stringify(preserved) === JSON.stringify(Array.from(page.querySelectorAll('[data-preserve]'), p => p.textContent)));
+    check('Противоречивый совет обновлён', !page.body.textContent.includes('UnionPay почти не привязывается'));
+    check('Шесть шагов', page.querySelectorAll('.travel-steps li').length === 6);
+    check('Все якоря существуют', Array.from(page.querySelectorAll('a[href^="#"]')).every(a => page.querySelector(a.getAttribute('href'))));
+    check('Нет повторяющихся ID', new Set(Array.from(page.querySelectorAll('[id]'), n => n.id)).size === page.querySelectorAll('[id]').length);
+    const before = page.documentElement.outerHTML;
+    SEAGULL_TRAVEL_NOTES(page, 'prep');
+    check('Повторный вызов ничего не дублирует', before === page.documentElement.outerHTML);
+    const flight = parse('<section id="airports"><div class="wrap"><ul class="guide"><li>Исходная карточка рейса</li></ul></div></section>');
+    SEAGULL_TRAVEL_NOTES(flight, 'flights');
+    check('Напоминание в перелётах', flight.querySelector('a[href="prep.html#powerbanks"]') && flight.querySelector('.guide').textContent === 'Исходная карточка рейса');
+    const unrelated = parse('<p>Другая глава</p>');
+    const original = unrelated.documentElement.outerHTML;
+    SEAGULL_TRAVEL_NOTES(unrelated, 'other');
+    check('Другие главы не затронуты', unrelated.documentElement.outerHTML === original);
+    const missing = parse('<p>Нет нужных разделов</p>');
+    SEAGULL_TRAVEL_NOTES(missing, 'prep');
+    check('Безопасно при другой структуре', !missing.documentElement.hasAttribute('data-travel-notes'));
+    const style = document.createElement('style');
+    style.textContent = page.querySelector('style').textContent;
+    document.head.append(style);
+    document.querySelector('#preview').append(...page.body.childNodes);
+    document.querySelector('#test-status').textContent = `${checks.length} проверок пройдено. Ниже — предпросмотр новых разделов.`;
+    document.querySelector('#test-status').dataset.result = 'passed';
+  } catch (error) {
+    document.querySelector('#test-status').textContent = `Ошибка проверки: ${error.message}`;
+    document.querySelector('#test-status').dataset.result = 'failed';
+    console.error(error);
+  }
+})();
+</script>
+</html>
